@@ -8,9 +8,6 @@ import com.gmail.vovan762000.scriptengineshell.util.EngineManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.stereotype.Component;
 
 import javax.script.ScriptEngine;
@@ -22,7 +19,7 @@ import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @Component("BlockedScriptReader")
-public class BlockedScriptReader implements ScriptReader, Condition {
+public class BlockedScriptReader implements ScriptReader {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private StringWriter sw = new StringWriter();
@@ -81,10 +78,5 @@ public class BlockedScriptReader implements ScriptReader, Condition {
     @Override
     public Script getScriptById(int scriptId) {
         return futureTaskMap.keySet().stream().filter(e -> e.getId()==scriptId).findFirst().get();
-    }
-
-    @Override
-    public boolean matches(ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata) {
-        return conditionContext.getEnvironment().getProperty("handler").contains("blocked");
     }
 }

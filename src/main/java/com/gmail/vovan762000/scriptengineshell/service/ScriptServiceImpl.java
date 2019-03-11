@@ -3,16 +3,16 @@ package com.gmail.vovan762000.scriptengineshell.service;
 import com.gmail.vovan762000.scriptengineshell.entity.Script;
 import com.gmail.vovan762000.scriptengineshell.exeption.ScriptServiceException;
 import com.gmail.vovan762000.scriptengineshell.reader.ScriptReader;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Service
 public class ScriptServiceImpl implements ScriptService {
 
-    @Resource(name = "${handler}")
+    @Value("${reader}")
     ScriptReader scriptReader;
 
     @Override

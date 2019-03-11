@@ -17,7 +17,7 @@ import javax.script.ScriptException;
 public class EngineManager {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Value("${engine.name}")
+    @Value("${engine}")
     private String engineName;
 
     public ScriptEngine get() {
