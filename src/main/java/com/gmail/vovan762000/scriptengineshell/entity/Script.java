@@ -1,6 +1,7 @@
 package com.gmail.vovan762000.scriptengineshell.entity;
 
 import java.util.Objects;
+import java.util.Random;
 
 public class Script {
     private int id;
@@ -61,8 +62,4 @@ public class Script {
                 Objects.equals(result, script1.result);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, script, status, result);
-    }
 }
