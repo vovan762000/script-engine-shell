@@ -6,12 +6,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,37 +31,51 @@ public class MainControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private ScriptService scriptService;
+    @Qualifier("ScriptServiceBlockImpl")
+    private ScriptService blockScriptService;
+
+    @MockBean
+    @Qualifier("ScriptServiceNonBlockImpl")
+    private ScriptService nonBlockScriptService;
 
     @Test
     public void executeScript() throws Exception {
         Script script = new Script();
         script.setScript("test");
-        given(this.scriptService.execute(any(Script.class))).willReturn(script);
-        mockMvc.perform(post("/execute")
+        given(this.blockScriptService.execute(any(Script.class))).willReturn(script);
+        mockMvc.perform(post("/execute/block")
+                .content("test"))
+                .andExpect(status().isOk());
+        given(this.nonBlockScriptService.execute(any(Script.class))).willReturn(script);
+        mockMvc.perform(post("/execute/nonblock")
                 .content("test"))
                 .andExpect(status().isOk());
     }
 
     @Test
-    public void getScriptExecutorById() throws Exception {
+    public void getScriptById() throws Exception {
         Script script = new Script();
         script.setScript("test");
-        given(this.scriptService.getById(TEST_ID)).willReturn(script);
-
-        mockMvc.perform(get("/script/" + TEST_ID))
+        given(this.blockScriptService.getById(TEST_ID)).willReturn(script);
+        mockMvc.perform(get("/script/block/" + TEST_ID))
+                .andExpect(status().isOk());
+        given(this.nonBlockScriptService.getById(TEST_ID)).willReturn(script);
+        mockMvc.perform(get("/script/nonblock/" + TEST_ID))
                 .andExpect(status().isOk());
     }
 
     @Test
     public void stopAndRemoveScript() throws Exception {
-        Mockito.doNothing().when(scriptService).deleteById(TEST_ID);
-        mockMvc.perform(delete("/delete/" + TEST_ID))
+        Mockito.doNothing().when(blockScriptService).deleteById(TEST_ID);
+        mockMvc.perform(delete("/delete/block/" + TEST_ID))
+                .andExpect(status().isOk());
+        Mockito.doNothing().when(nonBlockScriptService).deleteById(TEST_ID);
+        mockMvc.perform(delete("/delete/nonblock/" + TEST_ID))
                 .andExpect(status().isOk());
     }
 
     @Test
-    public void all() throws Exception {
+    public void allScripts() throws Exception {
         Script script1 = new Script();
         script1.setScript("test1");
         Script script2 = new Script();
@@ -68,8 +84,13 @@ public class MainControllerTest {
         scripts.add(script1);
         scripts.add(script2);
 
-        given(this.scriptService.getAll()).willReturn(scripts);
-        mockMvc.perform(get("/all")
+        given(this.blockScriptService.getAll()).willReturn(scripts);
+        mockMvc.perform(get("/all/block")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        given(this.nonBlockScriptService.getAll()).willReturn(scripts);
+        mockMvc.perform(get("/all/nonblock")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }

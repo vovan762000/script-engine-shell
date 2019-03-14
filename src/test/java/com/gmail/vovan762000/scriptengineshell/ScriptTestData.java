@@ -35,7 +35,7 @@ public class ScriptTestData {
     }
 
     public static void assertMatch(Iterable<Script> actual, Iterable<Script> expected) {
-        assertThat(actual).usingFieldByFieldElementComparator().isEqualTo(expected);
+        assertThat(actual).hasSameElementsAs(expected);
     }
 
     public static void assertMatch(Iterable<Script> actual, Script... expected) {

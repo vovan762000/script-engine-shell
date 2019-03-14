@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -25,11 +26,10 @@ import static com.gmail.vovan762000.scriptengineshell.ScriptTestData.*;
 public class ScriptServiceImplTest {
     private int startSeq;
 
-    @Autowired
-    private ScriptService scriptService;
-
     @Resource(name = "${reader}")
     private ScriptReader scriptReader;
+    @Resource(name = "${service}")
+    private ScriptService scriptService;
 
     @Before
     public void before() throws InterruptedException, ExecutionException, ScriptServiceException {
@@ -46,7 +46,7 @@ public class ScriptServiceImplTest {
     }
 
     @After
-    public void after() throws ExecutionException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+    public void after() throws  NoSuchFieldException, IllegalAccessException {
         if(scriptReader instanceof com.gmail.vovan762000.scriptengineshell.reader.BlockedScriptReader) {
             Field field = scriptReader.getClass().getDeclaredField("futureTaskMap");
             field.setAccessible(true);
