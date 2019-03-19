@@ -55,7 +55,7 @@ public class NonBlockedScriptReader implements ScriptReader {
         ScriptExecutor scriptExecutor = scriptExecutorMap.get(scriptId);
         scriptExecutor.shutdownExecutorService();
         scriptExecutorMap.remove(scriptId);
-        log.debug("ScriptExecutor with id: '" + scriptId + "' was removed from handler");
+        log.debug("ScriptExecutor with id: '" + scriptId + "' was removed from scriptExecutorMap");
     }
 
     @Override

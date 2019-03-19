@@ -10,22 +10,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.script.ScriptEngine;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Component("BlockedScriptReader")
 public class BlockedScriptReader implements ScriptReader {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();;
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
     private Map<Integer, ScriptExecutor> scriptExecutorMap = new ConcurrentHashMap<>();
 
     @Autowired
@@ -62,7 +56,7 @@ public class BlockedScriptReader implements ScriptReader {
     }
 
     @Override
-    public Script getScriptById(int scriptId) throws ScriptServiceException{
+    public Script getScriptById(int scriptId) throws ScriptServiceException {
         if (scriptExecutorMap.get(scriptId) == null) {
             throw new NoSuchScriptException();
         }

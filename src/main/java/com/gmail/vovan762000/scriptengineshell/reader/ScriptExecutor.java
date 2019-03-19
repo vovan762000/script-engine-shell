@@ -37,6 +37,9 @@ public class ScriptExecutor implements Callable<Script> {
             Object functionResult = getExecutionResult();
             script.setStatus("FINISHED");
             script.setResult(functionResult);
+            if (script.getStatus().equals("FINISHED")) {
+                shutdownExecutorService();
+            }
             clear();
         } catch (Throwable e) {
             script.setStatus("INTERRUPT " + ", cause: " + e);
@@ -62,7 +65,7 @@ public class ScriptExecutor implements Callable<Script> {
     protected void shutdownExecutorService() {
         try {
             executorService.shutdown();
-            executorService.awaitTermination(1, SECONDS);
+            executorService.awaitTermination(5, SECONDS);
         } catch (InterruptedException e) {
             log.error("tasks interrupted");
         } finally {
@@ -71,6 +74,7 @@ public class ScriptExecutor implements Callable<Script> {
             }
             executorService.shutdownNow();
         }
+        log.debug("ExecutorService was shutdown - {}", executorService.isShutdown());
     }
 
     public Script getScript() {

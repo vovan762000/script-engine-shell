@@ -1,7 +1,6 @@
 package com.gmail.vovan762000.scriptengineshell.entity;
 
 import java.util.Objects;
-import java.util.Random;
 
 public class Script {
     private int id;
