@@ -13,70 +13,59 @@ import org.springframework.stereotype.Component;
 import javax.script.ScriptEngine;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 @Component("BlockedScriptReader")
 public class BlockedScriptReader implements ScriptReader {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private StringWriter sw = new StringWriter();
-    private PrintWriter pw = new PrintWriter(sw);
-    private ExecutorService executorService = Executors.newWorkStealingPool();
-    private Map<Script, FutureTask<Script>> futureTaskMap = new ConcurrentHashMap<>();
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();;
+    private Map<Integer, ScriptExecutor> scriptExecutorMap = new ConcurrentHashMap<>();
 
     @Autowired
     private EngineManager engineManager;
 
     @Override
-    public List<Script> getAllScripts() {
-        return futureTaskMap.keySet().stream().collect(Collectors.toList());
+    public List<Script> getAllScripts() throws ScriptServiceException {
+        List<Script> scripts = new ArrayList<>();
+        for (Map.Entry<Integer, ScriptExecutor> scriptExecutorEntry : scriptExecutorMap.entrySet()) {
+            scripts.add(scriptExecutorEntry.getValue().getScript());
+        }
+        return scripts;
     }
 
     public Script addAndExecuteScript(Script script) throws ScriptServiceException, ExecutionException, InterruptedException {
-        ScriptEngine engine = engineManager.get();
-        if (!engineManager.compile(script.getScript(), engine)) {
+        if (!engineManager.compile(script.getScript(), engineManager.get())) {
             throw new FailedCompilationScriptException();
         }
-        engine.getContext().setWriter(pw);
-        Callable<Script> task = () -> {
-            try {
-                script.setStatus("RUNNING");
-                Object functionResult = engine.eval(script.getScript());
-                script.setStatus("FINISHED");
-                script.setResult(functionResult);
-            } catch (Throwable e) {
-                script.setStatus("INTERRUPT" + ", cause: " + e);
-                pw.flush();
-                sw.getBuffer().setLength(0);
-                throw new ScriptServiceException(e.toString());
-            }
-            return script;
-        };
-        FutureTask<Script> future = new FutureTask<>(task);
-        executorService.execute(future);
-        futureTaskMap.put(script, future);
+        ScriptExecutor scriptExecutor = new ScriptExecutor(script, engineManager.get());
+        scriptExecutor.setExecutorService(executorService);
+        Future<Script> future = executorService.submit(scriptExecutor);
+        scriptExecutorMap.put(script.getId(), scriptExecutor);
         return future.get();
     }
 
     @Override
     public void deleteScript(int scriptId) throws ScriptServiceException {
-        Script currentScript = futureTaskMap.keySet().stream().filter(e -> e.getId()==scriptId).findFirst().get();
-        FutureTask<Script> futureTask = futureTaskMap.get(currentScript);
-        if (futureTask == null) {
+        if (scriptExecutorMap.get(scriptId) == null) {
             throw new NoSuchScriptException();
         }
-        while (futureTask.isCancelled()) {
-            futureTask.cancel(false);
-        }
-        futureTaskMap.remove(currentScript);
+        scriptExecutorMap.get(scriptId).shutdownExecutorService();
+        scriptExecutorMap.remove(scriptId);
         log.debug("Script with id: '" + scriptId + "' was removed");
     }
 
     @Override
-    public Script getScriptById(int scriptId) {
-        return futureTaskMap.keySet().stream().filter(e -> e.getId()==scriptId).findFirst().get();
+    public Script getScriptById(int scriptId) throws ScriptServiceException{
+        if (scriptExecutorMap.get(scriptId) == null) {
+            throw new NoSuchScriptException();
+        }
+        return scriptExecutorMap.get(scriptId).getScript();
     }
 }

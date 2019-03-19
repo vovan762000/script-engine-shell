@@ -2,6 +2,7 @@ package com.gmail.vovan762000.scriptengineshell.reader;
 
 import com.gmail.vovan762000.scriptengineshell.entity.Script;
 import com.gmail.vovan762000.scriptengineshell.exeption.FailedCompilationScriptException;
+import com.gmail.vovan762000.scriptengineshell.exeption.NoSuchScriptException;
 import com.gmail.vovan762000.scriptengineshell.exeption.ScriptServiceException;
 import com.gmail.vovan762000.scriptengineshell.util.EngineManager;
 import org.slf4j.Logger;
@@ -9,69 +10,60 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.script.ScriptEngine;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Component("NonBlockedScriptReader")
 public class NonBlockedScriptReader implements ScriptReader {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private StringWriter sw = new StringWriter();
-    private PrintWriter pw = new PrintWriter(sw);
+    private ExecutorService executorService;
 
     @Autowired
     private EngineManager engineManager;
-    private Map<Script, Thread> threadMap = new ConcurrentHashMap<>();
+    private Map<Integer, ScriptExecutor> scriptExecutorMap = new ConcurrentHashMap<>();
 
     @Override
     public List<Script> getAllScripts() {
-        return threadMap.keySet().stream().collect(Collectors.toList());
+        log.debug("Get all scripts");
+        return scriptExecutorMap.values().stream().map(e -> e.getScript()).collect(Collectors.toList());
     }
 
     @Override
     public Script addAndExecuteScript(Script script) throws ScriptServiceException {
-        ScriptEngine engine = engineManager.get();
-        if (!engineManager.compile(script.getScript(), engine)) {
+        if (!engineManager.compile(script.getScript(), engineManager.get())) {
             throw new FailedCompilationScriptException();
         }
-        engine.getContext().setWriter(pw);
-        Runnable task = () -> {
-            try {
-                script.setStatus("RUNNING");
-                Object functionResult = engine.eval(script.getScript());
-                script.setStatus("FINISHED");
-                script.setResult(functionResult);
-            } catch (Throwable e) {
-                script.setStatus("INTERRUPT" + ", cause: " + e);
-                pw.flush();
-                sw.getBuffer().setLength(0);
-            }
-        };
-        Thread thread = new Thread(task);
-        thread.start();
-        threadMap.put(script, thread);
+        ScriptExecutor scriptExecutor = new ScriptExecutor(script, engineManager.get());
+        executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(scriptExecutor);
+        scriptExecutor.setExecutorService(executorService);
+        scriptExecutorMap.put(script.getId(), scriptExecutor);
+        log.debug("start executing script  " + script.getId());
         return script;
     }
 
     @Override
-    public void deleteScript(int scriptId){
-        Script currentScript = threadMap.keySet().stream().filter(e -> e.getId()==scriptId).findFirst().get();
-        Thread thread = threadMap.get(currentScript);
-        while (thread.isAlive()) {
-            System.out.println(thread.isAlive());
-            thread.stop();
+    public void deleteScript(int scriptId) throws ScriptServiceException {
+        if (scriptExecutorMap.get(scriptId) == null) {
+            throw new NoSuchScriptException();
         }
-        threadMap.remove(currentScript);
+        ScriptExecutor scriptExecutor = scriptExecutorMap.get(scriptId);
+        scriptExecutor.shutdownExecutorService();
+        scriptExecutorMap.remove(scriptId);
         log.debug("ScriptExecutor with id: '" + scriptId + "' was removed from handler");
     }
 
     @Override
-    public Script getScriptById(int scriptId) {
-        return threadMap.keySet().stream().filter(e -> e.getId()==scriptId).findFirst().get();
+    public Script getScriptById(int scriptId) throws ScriptServiceException {
+        if (scriptExecutorMap.get(scriptId) == null) {
+            throw new NoSuchScriptException();
+        }
+        log.debug("get script with id  {}", scriptId);
+        return scriptExecutorMap.get(scriptId).getScript();
     }
 }

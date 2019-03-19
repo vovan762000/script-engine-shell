@@ -1,13 +1,8 @@
 package com.gmail.vovan762000.scriptengineshell.exeption;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(code = HttpStatus.NOT_FOUND, reason = "There is no such script")
 public class NoSuchScriptException extends ScriptServiceException {
-    private static final String DEFAULT_MSG = "Script not exist";
-
-    public NoSuchScriptException() {
-        super(DEFAULT_MSG);
-    }
-
-    public NoSuchScriptException(String msg) {
-        super(msg);
-    }
 }

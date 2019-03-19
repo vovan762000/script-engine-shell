@@ -19,11 +19,14 @@ public class EngineManager {
 
     @Value("${engine}")
     private String engineName;
+    private ScriptEngine engine;
 
     public ScriptEngine get() {
-        ScriptEngineManager factory = new ScriptEngineManager();
-        ScriptEngine engine = factory.getEngineByName(engineName);
-        log.debug("New engine was created");
+        if (engine == null) {
+            ScriptEngineManager factory = new ScriptEngineManager();
+            engine = factory.getEngineByName(engineName);
+            log.debug("New engine was created");
+        }
         return engine;
     }
 

@@ -62,4 +62,12 @@ public class Script {
                 Objects.equals(result, script1.result);
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 37;
+        hash = hash * 17 + script.hashCode();
+        hash = hash * 17 + status.hashCode();
+        hash = hash * 17 + result.hashCode();
+        return hash;
+    }
 }

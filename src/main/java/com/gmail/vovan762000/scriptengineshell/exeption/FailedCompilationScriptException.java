@@ -1,14 +1,9 @@
 package com.gmail.vovan762000.scriptengineshell.exeption;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "Compilation failed")
 public class FailedCompilationScriptException extends ScriptServiceException {
-    private static final String DEFAULT_MSG = "Compilation failed";
-
-    public FailedCompilationScriptException() {
-        super(DEFAULT_MSG);
-    }
-
-    public FailedCompilationScriptException(String msg) {
-        super(msg);
-    }
 }
 
