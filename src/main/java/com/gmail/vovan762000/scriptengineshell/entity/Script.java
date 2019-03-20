@@ -6,12 +6,12 @@ public class Script {
     private int id;
     private String script;
     private String status;
-    private Object result;
+    private String result;
 
     public Script() {
     }
 
-    public Script(int id, String script, String status, Object result) {
+    public Script(int id, String script, String status, String result) {
         this.id = id;
         this.script = script;
         this.status = status;
@@ -42,11 +42,11 @@ public class Script {
         this.status = status;
     }
 
-    public Object getResult() {
+    public String getResult() {
         return result;
     }
 
-    public void setResult(Object result) {
+    public void setResult(String result) {
         this.result = result;
     }
 

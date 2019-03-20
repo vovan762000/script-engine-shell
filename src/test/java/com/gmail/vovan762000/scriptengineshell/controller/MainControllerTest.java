@@ -48,7 +48,7 @@ public class MainControllerTest {
         given(this.nonBlockedScriptReader.addAndExecuteScript(any(Script.class))).willReturn(script);
         mockMvc.perform(post("/nonblocked/scripts")
                 .content("test"))
-                .andExpect(status().isOk());
+                .andExpect(status().is(202));
     }
 
     @Test
@@ -65,10 +65,10 @@ public class MainControllerTest {
 
     @Test
     public void stopAndRemoveScript() throws Exception {
-        Mockito.doNothing().when(blockedScriptReader).deleteScript(TEST_ID);
+        Mockito.doNothing().when(blockedScriptReader).deleteScriptById(TEST_ID);
         mockMvc.perform(delete("/blocked/scripts/" + TEST_ID))
                 .andExpect(status().isOk());
-        Mockito.doNothing().when(nonBlockedScriptReader).deleteScript(TEST_ID);
+        Mockito.doNothing().when(nonBlockedScriptReader).deleteScriptById(TEST_ID);
         mockMvc.perform(delete("/nonblocked/scripts/" + TEST_ID))
                 .andExpect(status().isOk());
     }

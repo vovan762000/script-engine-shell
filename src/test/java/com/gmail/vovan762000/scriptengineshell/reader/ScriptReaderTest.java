@@ -1,10 +1,8 @@
-package com.gmail.vovan762000.scriptengineshell.service;
+package com.gmail.vovan762000.scriptengineshell.reader;
 
 import com.gmail.vovan762000.scriptengineshell.ScriptEngineShellApplication;
 import com.gmail.vovan762000.scriptengineshell.entity.Script;
 import com.gmail.vovan762000.scriptengineshell.exeption.ScriptServiceException;
-import com.gmail.vovan762000.scriptengineshell.reader.ScriptExecutor;
-import com.gmail.vovan762000.scriptengineshell.reader.ScriptReader;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,13 +20,11 @@ import static com.gmail.vovan762000.scriptengineshell.ScriptTestData.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ScriptEngineShellApplication.class)
-public class ScriptServiceImplTest {
+public class ScriptReaderTest {
     private int startSeq;
 
     @Resource(name = "${reader}")
     private ScriptReader scriptReader;
-//    @Resource(name = "${service}")
-//    private ScriptService scriptService;
 
     @Before
     public void before() throws InterruptedException, ExecutionException, ScriptServiceException {
@@ -46,11 +42,19 @@ public class ScriptServiceImplTest {
 
     @After
     public void after() throws NoSuchFieldException, IllegalAccessException {
-        Field field = scriptReader.getClass().getDeclaredField("scriptExecutorMap");
-        field.setAccessible(true);
-        Map<Integer, ScriptExecutor> scriptExecutorMap = null;
-        scriptExecutorMap = (Map<Integer, ScriptExecutor>) field.get(scriptReader);
-        scriptExecutorMap.clear();
+        if (scriptReader instanceof BlockedScriptReader) {
+            Field field = scriptReader.getClass().getDeclaredField("blockScExMap");
+            field.setAccessible(true);
+            Map<Integer, ScriptExecutor> scriptExecutorMap = null;
+            scriptExecutorMap = (Map<Integer, ScriptExecutor>) field.get(scriptReader);
+            scriptExecutorMap.clear();
+        }else{
+            Field field = scriptReader.getClass().getDeclaredField("nonBlockScExMap");
+            field.setAccessible(true);
+            Map<Integer, ScriptExecutor> scriptExecutorMap = null;
+            scriptExecutorMap = (Map<Integer, ScriptExecutor>) field.get(scriptReader);
+            scriptExecutorMap.clear();
+        }
     }
 
     @Test
@@ -78,7 +82,7 @@ public class ScriptServiceImplTest {
 
     @Test
     public void deleteById() throws ScriptServiceException {
-        scriptReader.deleteScript(3);
+        scriptReader.deleteScriptById(3);
         assertMatch(scriptReader.getAllScripts(), SCRIPT_2, SCRIPT_1);
     }
 }

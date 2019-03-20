@@ -43,7 +43,7 @@ public class MainController {
         responseBody.setContent(scriptObj);
         setLinks(responseBody, way, scriptObj);
         log.info("executed script with id  {}", newScript.getId());
-        return new ResponseEntity<>(responseBody, HttpStatus.OK);
+        return way.equals("blocked") ? new ResponseEntity<>(responseBody, HttpStatus.OK) : new ResponseEntity<>(responseBody, HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/{way}/scripts/{id}")
@@ -58,7 +58,7 @@ public class MainController {
 
     @DeleteMapping("/{way}/scripts/{id}")
     public ResponseEntity stopAndRemoveScript(@PathVariable String way, @PathVariable int id) throws ScriptServiceException {
-        wayOfRead(way).deleteScript(id);
+        wayOfRead(way).deleteScriptById(id);
         log.info("delete script with id  {}", id);
         return new ResponseEntity(HttpStatus.OK);
     }

@@ -14,7 +14,7 @@ public interface ScriptReader {
 
     Script addAndExecuteScript(Script script) throws ScriptServiceException, ExecutionException, InterruptedException;
 
-    void deleteScript(int scriptId) throws ScriptServiceException;
+    void deleteScriptById(int scriptId) throws ScriptServiceException;
 
     Script getScriptById(int scriptId) throws ScriptServiceException, InterruptedException, ExecutionException, TimeoutException;
 }

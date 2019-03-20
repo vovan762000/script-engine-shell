@@ -2,14 +2,15 @@
 
 ScriptEngineShell - REST API cover for javax.script.ScriptEngine.
 
-<p>How to use:</p>
+How to use:
+
 You can chose engine in confing.properties,default value is nashorn.
 For testinhg one of the best chose is Postman.
 
-1.Add script - localhost:8080/execute/(block or nonblock) (block - implements blocking ipi design,nonblock - nonblocking)
+1.request POST - localhost:8080/(block or nonblock)/scripts (block - implements blocking ipi design,nonblock - nonblocking)
 
-2.Get script by id - localhost:8080/script/(block or nonblock)/id ,where id - script id
+2.request GET - localhost:8080/(block or nonblock)/scripts/id ,where id - script id
 
-3.Get all scripts - localhost:8080/all/(block or nonblock)
+3.request GET - localhost:8080/(block or nonblock)/scripts
 
-4.Delete script - localhost:8080/delete/(block or nonblock)/id
+4.request DELETE - localhost:8080/(block or nonblock)/scripts/id
